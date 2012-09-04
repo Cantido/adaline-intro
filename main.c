@@ -3,11 +3,13 @@
 #include <sys/types.h>
 
 #define LEARNFILE "/home/Bobby/git/adaline-intro/learning-set.txt"
+#define TESTFILE "/home/Bobby/git/adaline-intro/test-set.txt"
+#define RESULTSFILE "/home/Bobby/git/adaline-intro/results.txt"
+#define DESIREDFILE "/home/Bobby/git/adaline-intro/desired.txt"
 
 /* TYPE DEFINITIONS START */
 
 typedef struct weights_type{
-  float bias;
   float w[8];
 } weights_type;
 
@@ -16,13 +18,12 @@ typedef struct datapoint{
   float desired;
 } datapoint;
 
-const datapoint DATAPOINT_ZERO = {0, 0};
 
 /* TYPE DEFINITIONS END */
 
 /* GLOBAL VARIABLES START */
 
-const char ETA = 1;
+const float ETA = 0.000001;
 
 
 /* GLOBAL VARIABLES END */
@@ -35,12 +36,12 @@ const char ETA = 1;
 datapoint read_datapoint(FILE *stream){
   datapoint data = {0, 0};
   
-  if(fscanf(stream, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t",
+  if(fscanf(stream, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f \n",
       &data.x[0], &data.x[1],
       &data.x[2], &data.x[3],
       &data.x[4], &data.x[5],
       &data.x[6], &data.x[7],
-      &data.desired) != 8){
+      &data.desired) != 9){
     data.x[0] = -1;
   }
   return data;
@@ -50,7 +51,7 @@ datapoint read_datapoint(FILE *stream){
 
 float eval(datapoint data, weights_type weights){
   short i = 0;
-  float result = weights.bias;
+  float result = 0;
   
   for(i = 0; i < 8; i++){
     result += (weights.w[i] * data.x[i]);
@@ -62,6 +63,7 @@ float eval(datapoint data, weights_type weights){
 float calc_error(datapoint data, weights_type weights){
   return (data.desired - eval(data, weights));
 }
+
 
 void weight_update(datapoint data, weights_type &weights){
   short i = 0;
@@ -76,18 +78,37 @@ void weight_update(datapoint data, weights_type &weights){
 
 int main(){
   
-  FILE *dataset = fopen(LEARNFILE, "r");
+  int count = 1;
+  float total_error = 0;
+  float step_error = 0;
   
-  weights_type w = {0, 1, 1, 1, 1, 1, 1, 1, 1};
+  FILE *dataset = fopen(LEARNFILE, "r");
+  FILE *results = fopen(RESULTSFILE, "w");
+  
+  weights_type w = {0, 0, 0, 0, 0, 0, 0, 0};
   datapoint data = read_datapoint(dataset);
   
   while(data.x[0] != -1){
-    break;
+    step_error = calc_error(data, w);
+    total_error += step_error * step_error;
+    total_error /= 2 * count;
+    printf("%i\t%f\n", count, total_error);
+    weight_update(data, w);
+    
+    data = read_datapoint(dataset);
+    count++;
   }
   
+  printf("Sum of squared error: %f\n", total_error);
   
+  fprintf(results, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t \n",
+      w.w[0], w.w[1],
+      w.w[2], w.w[3],
+      w.w[4], w.w[5],
+      w.w[6], w.w[7]);
   
   fclose(dataset);
+  fclose(results);
   
   return 0;
 }
