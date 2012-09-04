@@ -2,24 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* TYPE DEFINITIONS START */
-
-typedef struct weights_type{
-  float w[8];
-} weights_type;
-
-typedef struct datapoint{
-  float x[8];
-  float desired;
-} datapoint;
-
-
-/* TYPE DEFINITIONS END */
-
 /* GLOBAL VARIABLES START */
 
-const float ETA = 0.000001;
-
+const float LEARNING_RATE = 0.000000001;
 
 /* GLOBAL VARIABLES END */
 
@@ -28,42 +13,41 @@ const float ETA = 0.000001;
 
 /* -- Non-math functions -- */
 
-datapoint get_datapoint(){
-  datapoint data = {0, 0};
+float* get_datapoint(){
+  static float x[10] = {0};
+  
+  /* first eight values are input, ninth is 1 (bias), tenth is desired value */
   
   if(scanf("%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f \n",
-      &data.x[0], &data.x[1],
-      &data.x[2], &data.x[3],
-      &data.x[4], &data.x[5],
-      &data.x[6], &data.x[7],
-      &data.desired) != 9){
-    data.x[0] = -1;
+  &x[0], &x[1], &x[2], &x[3], &x[4], &x[5], &x[6], &x[7], &x[8]) != 9){
+    x[0] = -1;
   }
-  return data;
+  else {
+    x[9] = x[8];
+    x[8] = 1;
+  }
+  return x;
 }
 
 /* -- Math functions -- */
 
-float eval(datapoint data, weights_type weights){
-  short i = 0;
-  float result = 0;
+float calc_error(float x[], float w[]){
+  int i = 0;
+  float real = 0;
   
-  for(i = 0; i < 8; i++){
-    result += (weights.w[i] * data.x[i]);
+  for(i = 0; i < 9; i++){
+    real += (w[i] * x[i]);
   }
   
-  return result;
-}
-
-float calc_error(datapoint data, weights_type weights){
-  return (data.desired - eval(data, weights));
+  return (x[9] - real);
 }
 
 
-void weight_update(datapoint data, weights_type &weights){
+void weight_update(float x[], float w[]){
   short i = 0;
-  for(i = 0; i < 8; i++){
-    weights.w[i] = weights.w[i] + (ETA * calc_error(data, weights) * data.x[i]);
+  float step_error = calc_error(x, w);
+  for(i = 0; i < 9; i++){
+    w[i] += (LEARNING_RATE * step_error * x[i]);
   }
 }
 
@@ -71,44 +55,25 @@ void weight_update(datapoint data, weights_type &weights){
 
 /* MAIN START */
 
-int main(int argc, char* argv[]){
+int main(){
   
   int count = 1;
-  float total_error = 0;
-  float step_error = 0;
   
-  char print_curve = 0;
-  char print_weights = 0;
-  
-  weights_type w = {0, 0, 0, 0, 0, 0, 0, 0};
-  datapoint data = get_datapoint();
-  
-  if((strcmp(argv[1], "curve") == 0) || (strcmp(argv[2], "curve") == 0))
-    print_curve = 1;
-  if((strcmp(argv[1], "weights") == 0) || (strcmp(argv[2], "weights") == 0))
-    print_weights = 1;
+  float w[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1}; // 9th weight is bias
+  float* x = get_datapoint();
   
   
-  while(data.x[0] != -1){
-    if(print_curve == 1){
-      step_error = calc_error(data, w);
-    
-      total_error += step_error * step_error;
-      total_error /= 2 * count;
-    
-      printf("%i\t%f\n", count, total_error);
-    }
-    
-    weight_update(data, w);
-    
-    data = get_datapoint();
+  while(x[0] != -1){
+    printf("%i:\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f \n",
+     count, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]);
+  
+    weight_update(x, w);
+    x = get_datapoint();
     count++;
   }
   
-  if(print_weights == 1){
-    printf("%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t \n",
-      w.w[0], w.w[1], w.w[2], w.w[3], w.w[4], w.w[5], w.w[6], w.w[7]);
-  }
+  printf("Final:\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f \n",
+     w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]);
   
   return 0;
 }
