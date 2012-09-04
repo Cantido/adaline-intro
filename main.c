@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INPUT_FILE "/home/Bobby/git/adaline-intro/learning-set.txt"
+#define LEARNING_FILE "/home/Bobby/git/adaline-intro/learning-set.txt"
 
 /* GLOBAL VARIABLES START */
 
@@ -76,15 +76,14 @@ void learn(){
     while(x[0] != -1){
       sumsqr += calc_error(x, w) * calc_error(x, w);
       sumsqr_error = sumsqr / (2 * count);
-      //printf("%i:\t%f\n", count, sumsqr_error);
       weight_update(x, w);
       x = get_datapoint();
       count++;
     }
     
-    printf("After iteration #%i:\t%f\n", iterations, sumsqr_error);
+    printf("%i\t%f\n", iterations, sumsqr_error);
   }
-  printf("Final:\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f \n",
+  printf("Weights:\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f \n",
      w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]);
   
   return;
@@ -126,7 +125,7 @@ void test(){
 
 int main(){
   
-  input_file = fopen(INPUT_FILE, "r");
+  input_file = fopen(LEARNING_FILE, "r");
   
   learn();
   
