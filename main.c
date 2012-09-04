@@ -2,11 +2,6 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#define LEARNFILE "/home/Bobby/git/adaline-intro/learning-set.txt"
-#define TESTFILE "/home/Bobby/git/adaline-intro/test-set.txt"
-#define RESULTSFILE "/home/Bobby/git/adaline-intro/results.txt"
-#define DESIREDFILE "/home/Bobby/git/adaline-intro/desired.txt"
-
 /* TYPE DEFINITIONS START */
 
 typedef struct weights_type{
@@ -33,10 +28,10 @@ const float ETA = 0.000001;
 
 /* -- Non-math functions -- */
 
-datapoint read_datapoint(FILE *stream){
+datapoint get_datapoint(){
   datapoint data = {0, 0};
   
-  if(fscanf(stream, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f \n",
+  if(scanf("%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f \n",
       &data.x[0], &data.x[1],
       &data.x[2], &data.x[3],
       &data.x[4], &data.x[5],
@@ -82,33 +77,26 @@ int main(){
   float total_error = 0;
   float step_error = 0;
   
-  FILE *dataset = fopen(LEARNFILE, "r");
-  FILE *results = fopen(RESULTSFILE, "w");
-  
   weights_type w = {0, 0, 0, 0, 0, 0, 0, 0};
-  datapoint data = read_datapoint(dataset);
+  datapoint data = get_datapoint();
+  
   
   while(data.x[0] != -1){
     step_error = calc_error(data, w);
+    
     total_error += step_error * step_error;
     total_error /= 2 * count;
+    
     printf("%i\t%f\n", count, total_error);
+    
     weight_update(data, w);
     
-    data = read_datapoint(dataset);
+    data = get_datapoint();
     count++;
   }
   
-  printf("Sum of squared error: %f\n", total_error);
-  
-  fprintf(results, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t \n",
-      w.w[0], w.w[1],
-      w.w[2], w.w[3],
-      w.w[4], w.w[5],
-      w.w[6], w.w[7]);
-  
-  fclose(dataset);
-  fclose(results);
+  printf("Final Weights:\n%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t \n",
+      w.w[0], w.w[1], w.w[2], w.w[3], w.w[4], w.w[5], w.w[6], w.w[7]);
   
   return 0;
 }
